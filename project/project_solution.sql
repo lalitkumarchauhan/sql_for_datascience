@@ -62,6 +62,15 @@ JOIN payment p ON c.customer_id = p.customer_id
 GROUP BY 1
 ORDER BY 2 DESC;
 
+--The same query can be written as the below without aditionally using the JOIN clause as proposed in the original Project
+
+SELECT customer_id, sum(amount) from payment GROUP by customer_id ORDER by sum(amount) DESC;
+
+
+
+
+
+
 /* What Store has historically brought the most revenue */
 SELECT s.store_id, SUM(p.amount) AS "Total Spending"
 FROM store s
