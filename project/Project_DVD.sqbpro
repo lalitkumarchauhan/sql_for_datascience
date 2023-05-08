@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="G:/0000VH/SQL/Project_SQL/sqlite-sakila.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="6514"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,5:mainactor"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="actor" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="62"/><column index="2" value="90"/><column index="3" value="96"/><column index="4" value="129"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="Project_DVD.sql">-- Question 1
+-- The business wants to run email campaigns for customers in store id 2 and needs the email ids, 
+-- first name as well as last name of the customers. Write a query to fetch this data.
+
+--select email, first_name, last_name from customer where store_id = 2;
+
+
+-- Question 2
+-- While doing the audit of the business, one of the financial analyst found out that some DVD's are being rented out for $0.99.
+-- The finance department needs the count of such movies whose rental rate is $0.99. Can you help them?
+
+-- select count(film_id) as number_of_movies from film WHERE rental_rate = 0.99;
+
+-- Question 3
+-- The accounts department is thinking of coming up with a different way of accounting for the business costs. For this they need to 
+-- find out the number of movies rented at different rental price points. 
+-- Write an SQL query to provide this crucial input to the accounts department.
+
+-- SELECT rental_rate, count(film_id) as Number_of_movies  FROM film GROUP by rental_rate;
+
+
+-- Question 4
+-- The marketing team wants to understand how number of movies are spread across movie ratings. Can you help them?
+
+-- SELECT rating, count(film_id) as Number_of_movies FROM film GROUP by rating;
+
+-- Question 5
+-- The marketing team also wants to know how ratings are distributed across stores. 
+-- The team needs to know the distribution of ratings for each store in the dataset. Write a SQL query to help solve this problem.
+
+-- SELECT s.store_id, f.rating, count(f.rating) FROM store s JOIN film f on s.last_update = f.last_update GROUP by s.store_id, f.rating;
+
+-- Question 6
+-- The digital marketing team is studying what other movie rental businesses are doing- what kind of movies are being rented out by 
+-- competitors as well as the current company. Your job is to provide the team with details on film name, category each film belongs 
+-- to and the language in which the film is.
+
+-- SELECT f.title, fc.category_id, fc.last_update 
+-- from film f JOIN film_category fc 
+-- on f.film_id = fc.film_id
+-- JOIN language l 
+-- on fc.last_update = l.last_update;
+
+
+
+-- Question 7
+-- The business is interested to know about the popularity of the movies in the current inventory, 
+-- the stores and customers who bring in more revenue. 
+
+-- Help the business in finding out:
+--- The number of times each movie is rented out.
+
+-- SELECT i.film_id, f.title, count(i.film_id) as Total_number_of_rentals 
+-- from rental r join inventory i 
+-- on r.inventory_id = i.inventory_id 
+-- join film f on i.film_id = f.film_id
+-- GROUP by 1
+-- order by 3 desc;
+
+--- Revenue per movie
+
+-- SELECT i.film_id, f.title, count(i.film_id) as Total_number_of_rentals, f.rental_rate, count(i.film_id)*f.rental_rate as revenue_per_movie
+-- from rental r join inventory i
+-- on r.inventory_id = i.inventory_id
+-- join film f on i.film_id = f.film_id
+-- group by 1
+-- order by 5 DESC;
+
+--- Which customer has spent the most?
+
+-- SELECT c.customer_id, c.first_name, c.last_name, sum(p.amount) from customer c JOIN payment p on c.customer_id = p.customer_id GROUP by 1 ORDER by 4 desc limit 1;
+
+--- Most revenue earned by a store
+
+-- SELECT s.store_id, sum(p.amount) 
+-- FROM store s JOIN inventory i 
+-- on s.store_id = i.store_id JOIN rental r 
+-- on i.inventory_id = r.inventory_id JOIN payment p 
+-- on r.rental_id = p.rental_id 
+-- group by 1;
+
+
+
+
+-- Question 8
+-- One important aspect of business is loyalty and reward programs for customers as well as internal stakeholders. 
+-- The business is currently looking at launching some strategic initiatives for which they need to know the 
+-- following information:
+--- Last Rental Date of every customer
+
+-- SELECT c.customer_id, c.first_name, c.last_name, max(r.rental_date) AS &quot;Last Rental Date&quot;
+-- FROM customer c join rental r 
+-- on c.customer_id = r.customer_id 
+-- group by 1;
+
+--- Total revenue per month
+
+--select strftime('%m', payment_date) as month, round(sum(amount), 2) as Total_revenue_per_month from payment GROUP by 1;
+
+--- Number of distinct renters per month
+
+-- select strftime('%m', rental_date) as month, count(rental_id) as total_renters_per_month, count(distinct (customer_id)) as Unique_Renters_per_month from rental GROUP by 1;
+
+
+--- Number of distinct film rented each month
+-- select strftime('%m', r.rental_date) as month, count(distinct(i.film_id)) as Distinct_films_rented_per_month 
+-- from rental r join inventory i 
+-- on r.inventory_id = i.inventory_id
+-- GROUP by 1;
+
+---Proposed Solution
+-- SELECT i.film_id, f.title, strftime(&quot;%m&quot;,r.rental_date) AS &quot;Month&quot;, COUNT(i.film_id) AS &quot;Total Number Of Rental Times&quot;
+-- FROM rental r
+-- JOIN inventory i ON r.inventory_id = i.inventory_id
+-- JOIN film f ON f.film_id = i.film_id
+-- GROUP BY i.film_id, strftime(&quot;%m&quot;,r.rental_date)
+-- ORDER BY 1, 2, 3;
+
+--- Number of rentals in Comedy, Sports and Family
+-- select c.name, count(r.rental_id) 
+-- from category c JOIN film_category fc 
+-- on c.category_id = fc.category_id 
+-- JOIN film f on fc.film_id = f.film_id
+-- JOIN inventory i on f.film_id = i.film_id
+-- JOIN rental r on i.inventory_id = r.inventory_id
+-- where c.name in (&quot;Comedy&quot;, &quot;Sports&quot;, &quot;Family&quot;)
+-- GROUP by 1;
+
+
+--- Users who have rented movies at least three times
+-- 	select count(distinct(i.film_id)) as Distinct_films_rented_per_month 
+-- 	from rental r join inventory i 
+-- 	on r.inventory_id = i.inventory_id
+-- 	JOIN film f on i.film_id = f.film_id
+-- 	GROUP by i.film_id
+-- 	HAVING Distinct_films_rented_per_month &gt;=3;
+	
+--- proposed solution	
+-- SELECT c.customer_id, c.first_name, c.last_name, COUNT(c.customer_id) AS &quot;Total Rentals&quot;
+-- FROM customer c
+-- JOIN rental r ON c.customer_id = r.customer_id
+-- GROUP BY 1
+-- HAVING COUNT(c.customer_id) &gt;= 3
+-- ORDER BY 4;
+	
+	
+--- How much revenue has one single store made over PG13 and R rated films?
+SELECT s.store_id, f.rating, round(SUM(p.amount),4) AS &quot;Total Revenue&quot;
+FROM store s 
+JOIN inventory i ON i.store_id = s.store_id
+JOIN rental r ON r.inventory_id = i.inventory_id
+JOIN payment p ON p.rental_id = r.rental_id
+JOIN film f ON f.film_id = i.film_id
+WHERE f.rating IN (&quot;PG-13&quot;, &quot;R&quot;)
+GROUP BY 1,2;</sql><current_tab id="0"/></tab_sql></sqlb_project>
